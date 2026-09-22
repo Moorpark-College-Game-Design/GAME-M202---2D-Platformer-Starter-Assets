@@ -93,9 +93,9 @@ public class Player : MonoBehaviour
 
         Run();
         Jump();
-        BetterGravity();
         FlipSprite();
         Climb();
+        BetterGravity();
     }
 
     private void Run()
@@ -121,7 +121,8 @@ public class Player : MonoBehaviour
 
         bool hSpeed = Mathf.Abs(playerCharacter.linearVelocity.x) > Mathf.Epsilon;
 
-        playerAnimator.SetBool("run", hSpeed);
+        // OPTIONAL BETTER GUARD FOR RUNNING STATE
+        playerAnimator.SetBool("run", hSpeed && !playerBodyCollider.IsTouchingLayers(climbingLayer));
     }
 
     private void FlipSprite()
@@ -141,7 +142,7 @@ public class Player : MonoBehaviour
             playerCharacter.linearVelocity = new Vector2(playerCharacter.linearVelocity.x, playerCharacter.linearVelocity.y * jumpCutMultiplier);
         }
 
-        bool isGrounded = playerFeetCollider.IsTouchingLayers(GroundLayer) || playerFeetCollider.IsTouchingLayers(climbingLayer);
+        bool isGrounded = playerFeetCollider.IsTouchingLayers(GroundLayer) || playerBodyCollider.IsTouchingLayers(climbingLayer);
 
         if(isGrounded)
         {
@@ -172,10 +173,19 @@ public class Player : MonoBehaviour
 
         lastGroundedTime = 0;
         jumpBufferTimer = 0;
+
+        // FORGOT THIS
+        jumpedOffLadderTimer = ladderJumpTime;
     }
 
     private void BetterGravity()
     {
+        // OPTIONAL BETTER GUARD WHEN CLIMBING
+        if (playerBodyCollider.IsTouchingLayers(climbingLayer))
+        {
+            return;
+        }
+
         // Use stronger gravity when falling, then cap fall speed
         float gravityMultiplier = playerCharacter.linearVelocity.y < 0 ? fallGravityMultiplier : 1f;
 
@@ -208,7 +218,8 @@ public class Player : MonoBehaviour
 
         bool vSpeed = Mathf.Abs(playerCharacter.linearVelocity.y) > Mathf.Epsilon;
 
-        playerAnimator.SetBool("climb", true);
+        // UPDATE THIS
+        playerAnimator.SetBool("climb", vSpeed);
 
         playerCharacter.gravityScale = 0.0f;
     }
