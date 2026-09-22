@@ -121,7 +121,7 @@ public class Player : MonoBehaviour
 
         bool hSpeed = Mathf.Abs(playerCharacter.linearVelocity.x) > Mathf.Epsilon;
 
-        // OPTIONAL BETTER GUARD FOR RUNNING STATE
+        // Stops the run animation while climbing
         playerAnimator.SetBool("run", hSpeed && !playerBodyCollider.IsTouchingLayers(climbingLayer));
     }
 
