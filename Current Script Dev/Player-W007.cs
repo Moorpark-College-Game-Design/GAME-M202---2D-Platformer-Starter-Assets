@@ -201,19 +201,29 @@ public class Player : MonoBehaviour
     {
         jumpedOffLadderTimer -= Time.deltaTime;
 
-        if(jumpedOffLadderTimer > 0 || !playerBodyCollider.IsTouchingLayers(climbingLayer))
+        // ADD THESE
+        bool onLadder = playerBodyCollider.IsTouchingLayers(climbingLayer);
+        bool wasClimbing = playerAnimator.GetBool("climb");
+
+        if(jumpedOffLadderTimer > 0 || !onLadder)
         {
             playerAnimator.SetBool("climb", false);
 
             playerCharacter.gravityScale = gravityScaleAtStart;
 
+            // No launch off climbing layer top
+            if(!onLadder && wasClimbing && jumpedOffLadderTimer <= 0)
+            {
+                playerCharacter.linearVelocity = new Vector2(playerCharacter.linearVelocity.x, 0f);
+            }
+
             return;
-        }            
+        }
 
         float vMovement = MoveInput.y;
 
         Vector2 climbingVelocity = new Vector2(MoveInput.x * runSpeed, vMovement * climbSpeed);
-        
+
         playerCharacter.linearVelocity = climbingVelocity;
 
         bool vSpeed = Mathf.Abs(playerCharacter.linearVelocity.y) > Mathf.Epsilon;
