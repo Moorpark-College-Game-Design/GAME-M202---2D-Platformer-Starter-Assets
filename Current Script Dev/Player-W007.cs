@@ -142,6 +142,7 @@ public class Player : MonoBehaviour
             playerCharacter.linearVelocity = new Vector2(playerCharacter.linearVelocity.x, playerCharacter.linearVelocity.y * jumpCutMultiplier);
         }
 
+        // Update this top playerFeetcollider  || playerBodyCollider
         bool isGrounded = playerFeetCollider.IsTouchingLayers(GroundLayer) || playerBodyCollider.IsTouchingLayers(climbingLayer);
 
         if(isGrounded)
