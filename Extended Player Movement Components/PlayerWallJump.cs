@@ -39,10 +39,11 @@ public class PlayerWallJump : MonoBehaviour
 
     void Update()
     {
-        if (!player.IsAlive)
-        {
-            return;
-        }
+        // Will need this later
+        // if (!player.IsAlive)
+        // {
+        //     return;
+        // }
 
         if (movementLockTimer > 0)
         {
