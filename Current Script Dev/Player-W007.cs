@@ -20,7 +20,13 @@ public class Player : MonoBehaviour
 
     [SerializeField] private float jumpBufferTime = 0.1f;
 
+    [SerializeField] private float ladderJumpTime = 0.15f;
+
+    float jumpedOffLadderTimer;
+
     [SerializeField] private float fallGravityMultiplier = 2.0f;
+
+    [SerializeField] private float climbSpeed = 5.0f;
 
     float gravityScaleAtStart;
 
@@ -28,6 +34,8 @@ public class Player : MonoBehaviour
     float jumpBufferTimer;
 
     [SerializeField] private LayerMask groundLayer;
+
+    LayerMask climbingLayer;
     
     [SerializeField] private InputActionAsset inputActions;
     
@@ -45,6 +53,7 @@ public class Player : MonoBehaviour
 
     Animator playerAnimator;
 
+    CapsuleCollider2D playerBodyCollider;
     BoxCollider2D playerFeetCollider;
 
     // Initializes its contents before the game begins
@@ -54,9 +63,12 @@ public class Player : MonoBehaviour
 
         playerAnimator = GetComponentInChildren<Animator>();
 
+        playerBodyCollider = GetComponent<CapsuleCollider2D>();
         playerFeetCollider = GetComponent<BoxCollider2D>();
 
         gravityScaleAtStart = playerCharacter.gravityScale;
+
+        climbingLayer = LayerMask.GetMask("Climbing");
         
         InputActionMap playerMap = inputActions.FindActionMap("Player", true);
 
@@ -81,8 +93,9 @@ public class Player : MonoBehaviour
 
         Run();
         Jump();
-        BetterGravity();
         FlipSprite();
+        Climb();
+        BetterGravity();
     }
 
     private void Run()
@@ -108,7 +121,8 @@ public class Player : MonoBehaviour
 
         bool hSpeed = Mathf.Abs(playerCharacter.linearVelocity.x) > Mathf.Epsilon;
 
-        playerAnimator.SetBool("run", hSpeed);
+        // Stops the run animation while climbing
+        playerAnimator.SetBool("run", hSpeed && !playerBodyCollider.IsTouchingLayers(climbingLayer));
     }
 
     private void FlipSprite()
@@ -128,7 +142,8 @@ public class Player : MonoBehaviour
             playerCharacter.linearVelocity = new Vector2(playerCharacter.linearVelocity.x, playerCharacter.linearVelocity.y * jumpCutMultiplier);
         }
 
-        bool isGrounded = playerFeetCollider.IsTouchingLayers(GroundLayer);
+        // Update this top playerFeetcollider  || playerBodyCollider
+        bool isGrounded = playerFeetCollider.IsTouchingLayers(GroundLayer) || playerBodyCollider.IsTouchingLayers(climbingLayer);
 
         if(isGrounded)
         {
@@ -159,10 +174,19 @@ public class Player : MonoBehaviour
 
         lastGroundedTime = 0;
         jumpBufferTimer = 0;
+
+        // FORGOT THIS
+        jumpedOffLadderTimer = ladderJumpTime;
     }
 
     private void BetterGravity()
     {
+        // OPTIONAL BETTER GUARD WHEN CLIMBING
+        if (playerBodyCollider.IsTouchingLayers(climbingLayer))
+        {
+            return;
+        }
+
         // Use stronger gravity when falling, then cap fall speed
         float gravityMultiplier = playerCharacter.linearVelocity.y < 0 ? fallGravityMultiplier : 1f;
 
@@ -174,4 +198,40 @@ public class Player : MonoBehaviour
         }
     }
 
+    private void Climb()
+    {
+        jumpedOffLadderTimer -= Time.deltaTime;
+
+        // ADD THESE
+        bool onLadder = playerBodyCollider.IsTouchingLayers(climbingLayer);
+        bool wasClimbing = playerAnimator.GetBool("climb");
+
+        if(jumpedOffLadderTimer > 0 || !onLadder)
+        {
+            playerAnimator.SetBool("climb", false);
+
+            playerCharacter.gravityScale = gravityScaleAtStart;
+
+            // No launch off climbing layer top
+            if(!onLadder && wasClimbing && jumpedOffLadderTimer <= 0)
+            {
+                playerCharacter.linearVelocity = new Vector2(playerCharacter.linearVelocity.x, 0f);
+            }
+
+            return;
+        }
+
+        float vMovement = MoveInput.y;
+
+        Vector2 climbingVelocity = new Vector2(MoveInput.x * runSpeed, vMovement * climbSpeed);
+
+        playerCharacter.linearVelocity = climbingVelocity;
+
+        bool vSpeed = Mathf.Abs(playerCharacter.linearVelocity.y) > Mathf.Epsilon;
+
+        // UPDATE THIS
+        playerAnimator.SetBool("climb", vSpeed);
+
+        playerCharacter.gravityScale = 0.0f;
+    }
 }
