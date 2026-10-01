@@ -24,10 +24,11 @@ public class PlayerDoubleJump : MonoBehaviour
 
     private void Update()
     {
-        if (!player.IsAlive)
-        {
-            return;
-        }
+        // Will need this later
+        // if (!player.IsAlive)
+        // {
+        //     return;
+        // }
 
         if (playerFeetCollider.IsTouchingLayers(player.GroundLayer))
         {

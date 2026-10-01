@@ -15,6 +15,8 @@ public class PlayerDash : MonoBehaviour
     Rigidbody2D playerCharacter;
     BoxCollider2D playerFeetCollider;
     AudioSource audioSource;
+
+    // Needs a new Input Action created in Unity!
     InputAction dashAction;
     float dashTimer;
     float cooldownTimer;
@@ -81,7 +83,6 @@ public class PlayerDash : MonoBehaviour
             dashDirection = transform.localScale.x >= 0 ? Vector2.right : Vector2.left;
         }
 
-        player.SetSpecialMovementActive(true);
         playerCharacter.gravityScale = 0;
         dashVelocity = dashDirection.normalized * dashSpeed;
         playerCharacter.linearVelocity = dashVelocity;
